@@ -1,0 +1,827 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>AURA | Architettura e Design Avanzato</title>
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Manrope:wght@300;400;500;600&family=Syne:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <script src="https://cdn.jsdelivr.net/gh/studio-freight/lenis@1.0.29/bundled/lenis.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js"></script>
+
+    <style>
+        /* ==========================================
+           1. VARIABILI E RESET CORE
+        ========================================== */
+        :root {
+            --c-bg: #F5F2EB;
+            --c-text: #2A2320;
+            --c-accent: #A65D37;
+            
+            --c-dark-bg: #11100F;
+            --c-dark-text: #EAE6DE;
+            
+            --c-passepartout: #FDFCF9;
+            --c-frame: #1C1918;
+            --c-border: rgba(42, 35, 32, 0.15);
+            
+            --f-display: 'Syne', sans-serif;
+            --f-serif: 'Instrument Serif', serif;
+            --f-body: 'Manrope', sans-serif;
+            
+            --spacing-xxl: clamp(8rem, 20vw, 16rem);
+            --spacing-xl: clamp(6rem, 15vw, 12rem);
+            --spacing-md: clamp(3rem, 8vw, 6rem);
+            
+            --container-w: 1600px;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body {
+            background-color: var(--c-bg); 
+            color: var(--c-text); 
+            font-family: var(--f-body);
+            -webkit-font-smoothing: antialiased; 
+            -moz-osx-font-smoothing: grayscale;
+            overflow-x: hidden; 
+            overscroll-behavior-y: none;
+        }
+
+        /* LENIS SMOOTH SCROLL */
+        html.lenis, html.lenis body { height: auto; }
+        .lenis.lenis-smooth { scroll-behavior: auto !important; }
+        .lenis.lenis-smooth [data-lenis-prevent] { overscroll-behavior: contain; }
+        .lenis.lenis-stopped { overflow: hidden; }
+
+        /* TIPOGRAFIA DI BASE */
+        h1, h2, h3, h4, h5, .logo { 
+            font-family: var(--f-display); 
+            font-weight: 600; 
+            line-height: 0.95; 
+        }
+        
+        .serif-italic { 
+            font-family: var(--f-serif); 
+            font-style: italic; 
+            font-weight: 400; 
+            font-size: 1.15em; 
+            letter-spacing: -0.01em; 
+            color: var(--c-accent); 
+        }
+        
+        p { line-height: 1.8; font-size: 1.1rem; }
+        
+        .reveal-wrap { 
+            overflow: hidden; 
+            display: inline-block; 
+            vertical-align: top; 
+            will-change: transform; 
+        }
+        
+        .reveal-inner { 
+            display: inline-block; 
+            transform: translateY(115%); 
+            will-change: transform; 
+        }
+        
+        .section-label { 
+            font-size: 0.85rem; 
+            text-transform: uppercase; 
+            letter-spacing: 0.15em; 
+            font-weight: 600; 
+            margin-bottom: 2rem; 
+            display: block; 
+            border-bottom: 1px solid var(--c-border); 
+            padding-bottom: 1rem; 
+        }
+
+        /* ==========================================
+           2. HEADER E MENU
+        ========================================== */
+        header {
+            position: fixed; 
+            top: 0; left: 0; width: 100%; 
+            padding: 1.5rem 2.5rem;
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center; 
+            z-index: 100;
+            background: linear-gradient(to bottom, rgba(245, 242, 235, 0.95) 30%, transparent); 
+            backdrop-filter: blur(10px);
+        }
+        
+        .logo { 
+            font-size: 1.4rem; 
+            letter-spacing: 0.1em; 
+            transition: color 0.3s; 
+            padding: 0.5rem;
+            cursor: pointer;
+        }
+        
+        .menu-btn { 
+            background: none; 
+            border: none; 
+            color: var(--c-text); 
+            font-family: var(--f-body); 
+            font-size: 0.9rem; 
+            text-transform: uppercase; 
+            letter-spacing: 0.05em; 
+            padding: 0.5rem;
+            cursor: pointer;
+        }
+
+        #compact-menu {
+            position: fixed; 
+            top: 5rem; right: 2.5rem; 
+            width: 320px;
+            background-color: var(--c-text); 
+            color: var(--c-bg); 
+            border-radius: 12px; 
+            padding: 2.5rem; 
+            z-index: 99;
+            transform: translateY(-20px) scale(0.95); 
+            opacity: 0; 
+            pointer-events: none; 
+            transition: all 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+            box-shadow: 0 20px 40px rgba(0,0,0,0.15);
+        }
+        
+        #compact-menu.active { 
+            transform: translateY(0) scale(1); 
+            opacity: 1; 
+            pointer-events: auto; 
+        }
+        
+        .menu-links { list-style: none; display: flex; flex-direction: column; gap: 1.5rem; }
+        .menu-links a { 
+            text-decoration: none; color: var(--c-bg); font-family: var(--f-display); 
+            font-size: 2.2rem; letter-spacing: -0.02em; transition: color 0.3s; display: block; 
+        }
+        .menu-links a:hover { color: var(--c-accent); font-family: var(--f-serif); font-style: italic; }
+
+        /* ==========================================
+           3. HERO SECTION
+        ========================================== */
+        .hero { 
+            min-height: 100vh; 
+            padding: 9rem 2.5rem 4rem 2.5rem; 
+            display: flex; 
+            flex-direction: column; 
+            max-width: var(--container-w); 
+            margin: 0 auto; 
+        }
+        
+        .hero-top-text { 
+            font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.1em; 
+            margin-bottom: 2rem; font-weight: 600; color: var(--c-accent); 
+        }
+        
+        .hero-title { 
+            font-size: clamp(3.5rem, 8vw, 9.5rem); 
+            letter-spacing: -0.03em; margin-bottom: 4rem; z-index: 2; position: relative; 
+        }
+        
+        .hero-title .indent { padding-left: 15vw; display: block; }
+        
+        .hero-images { 
+            position: relative; width: 100%; height: 55vh; 
+            display: flex; justify-content: flex-start; align-items: flex-end; 
+        }
+        
+        .hero-img-wrap { overflow: hidden; border-radius: 4px; opacity: 0; }
+        .hero-img-wrap img { width: 100%; height: 120%; object-fit: cover; transform-origin: center; }
+        
+        .main-img { width: 65%; height: 100%; position: relative; z-index: 1; }
+        .sub-img { 
+            width: 35%; height: 80%; position: absolute; right: 5%; bottom: -15%; 
+            z-index: 2; box-shadow: -20px 20px 40px rgba(0,0,0,0.15); 
+        }
+
+        /* ==========================================
+           4. IL METODO
+        ========================================== */
+        .process-section { 
+            padding: var(--spacing-xl) 2.5rem var(--spacing-xxl) 2.5rem; 
+            max-width: var(--container-w); margin: 0 auto; 
+            display: grid; grid-template-columns: 1fr 2fr; gap: 4rem; position: relative; 
+        }
+        
+        .process-bg-shape { 
+            position: absolute; right: 5%; top: 20%; width: 400px; height: 400px; 
+            background: radial-gradient(circle, rgba(166,93,55,0.12) 0%, transparent 70%); 
+            border-radius: 50%; z-index: -1; filter: blur(50px); 
+        }
+        
+        .process-text { 
+            font-size: clamp(1.5rem, 3.5vw, 3rem); font-family: var(--f-serif); line-height: 1.4; 
+        }
+        
+        .word { 
+            display: inline-block; position: relative; color: rgba(42, 35, 32, 0.15); will-change: color; 
+        }
+
+        /* ==========================================
+           5. PROGETTI (PREVIEW CARDS)
+        ========================================== */
+        .projects { padding: 0 0 var(--spacing-xxl) 0; }
+        .projects-header { max-width: var(--container-w); margin: 0 auto; padding: 0 2.5rem; }
+        
+        .project-card { 
+            display: grid; align-items: center; max-width: 1500px; margin: 0 auto; 
+            position: relative; cursor: pointer;
+        }
+        
+        .btn-outline { 
+            display: inline-flex; align-items: center; padding: 1rem 2.5rem; 
+            border: 1px solid currentColor; border-radius: 50px; font-family: var(--f-body); 
+            font-size: 0.9rem; text-transform: uppercase; letter-spacing: 0.05em; 
+            background: transparent; transition: all 0.4s ease; width: fit-content; 
+            color: inherit; margin-top: 2rem; position: relative; overflow: hidden; cursor: pointer;
+        }
+        
+        .btn-outline::before {
+            content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            background: currentColor; transform: scaleX(0); transform-origin: right;
+            transition: transform 0.4s ease; z-index: -1;
+        }
+        .btn-outline:hover::before { transform: scaleX(1); transform-origin: left; }
+        .btn-outline:hover { color: var(--c-bg); }
+        .layout-b .btn-outline:hover { color: var(--c-dark-bg); }
+
+        /* P1 - Argilla */
+        .layout-a { grid-template-columns: 5fr 7fr; gap: 5rem; padding: 6rem 2.5rem; direction: rtl; }
+        .layout-a > * { direction: ltr; }
+        .layout-a .project-img-container { aspect-ratio: 4/5; overflow: hidden; border-radius: 4px; }
+        .layout-a img { width: 100%; height: 120%; object-fit: cover; transition: transform 1.5s cubic-bezier(0.16, 1, 0.3, 1); }
+        .layout-a:hover img { transform: scale(1.03); }
+
+        /* P2 - Cenere */
+        .layout-b { 
+            background-color: var(--c-dark-bg); color: var(--c-dark-text); 
+            max-width: 100%; padding: 8rem 5vw; grid-template-columns: 1fr 1.5fr; 
+            gap: 6rem; margin-top: 6rem; 
+        }
+        
+        .collage-wrap { position: relative; width: 100%; aspect-ratio: 16/11; perspective: 1000px; }
+        .col-img-1, .col-img-2 { position: absolute; overflow: hidden; transition: all 0.8s cubic-bezier(0.25, 1, 0.5, 1); }
+        .col-img-1 { top: 5%; left: 0; width: 70%; height: 80%; filter: grayscale(100%) brightness(0.8); z-index: 1; }
+        .col-img-2 { bottom: 0; right: 5%; width: 55%; height: 65%; filter: grayscale(100%) brightness(0.6); z-index: 2; }
+        
+        .layout-b:hover .col-img-1 { filter: grayscale(0%) brightness(1); transform: translate(-3%, -3%) rotate(-2deg); }
+        .layout-b:hover .col-img-2 { filter: grayscale(0%) brightness(1); transform: translate(4%, 4%) rotate(2deg) scale(1.05); }
+        .collage-wrap img { width: 100%; height: 100%; object-fit: cover; transition: transform 0.8s; }
+        .layout-b:hover .collage-wrap img { transform: scale(1.05); }
+
+        .project-info { display: flex; flex-direction: column; gap: 1rem; }
+        .project-meta { font-size: 0.9rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.15em; color: var(--c-accent); }
+        .layout-b .project-meta { color: rgba(255,255,255,0.4); }
+        
+        .project-title { font-size: clamp(3.5rem, 6vw, 6.5rem); letter-spacing: -0.03em; line-height: 1; }
+        
+        .layout-b .project-title { 
+            font-size: clamp(4rem, 7.5vw, 8.5rem); 
+            text-transform: none; 
+            font-family: var(--f-serif); 
+            font-weight: 400; 
+            line-height: 0.95; 
+            letter-spacing: -0.01em; 
+            color: var(--c-dark-text);
+        }
+        
+        .layout-b .project-title i { font-style: italic; }
+
+        /* ==========================================
+           6. OVERLAY PROGETTI (GALLERIE ANIMATE)
+        ========================================== */
+        #project-overlay { 
+            position: fixed; inset: 0; width: 100%; height: 100%; 
+            background-color: var(--c-bg); z-index: 9999; overflow-y: auto; overflow-x: hidden; 
+            transform: translateY(100%); pointer-events: none; transition: background-color 0.5s; 
+        }
+        
+        #project-overlay.active { pointer-events: auto; }
+        #project-overlay.dark-theme { background-color: var(--c-dark-bg); color: var(--c-dark-text); }
+        
+        .overlay-header { 
+            padding: 1.5rem 2.5rem; display: flex; justify-content: space-between; align-items: center; 
+            position: sticky; top: 0; z-index: 10010; 
+            background: linear-gradient(to bottom, rgba(245, 242, 235, 0.95) 30%, transparent); 
+            backdrop-filter: blur(8px); 
+        }
+        
+        #project-overlay.dark-theme .overlay-header { background: linear-gradient(to bottom, rgba(17, 16, 15, 0.95) 30%, transparent); }
+        
+        .close-btn { 
+            background: var(--c-text); color: var(--c-bg); border: none; padding: 1rem 2rem; 
+            border-radius: 50px; text-transform: uppercase; font-size: 0.85rem; letter-spacing: 0.05em; cursor: pointer; 
+        }
+        
+        #project-overlay.dark-theme .close-btn { background: var(--c-dark-text); color: var(--c-dark-bg); }
+
+        .overlay-content { padding: 0 2.5rem var(--spacing-xl) 2.5rem; max-width: var(--container-w); margin: 0 auto; width: 100%; }
+        .overlay-hero { margin-top: 4rem; display: grid; grid-template-columns: 1fr 2fr; gap: 5rem; margin-bottom: var(--spacing-xl); }
+        
+        /* Modifica font Titolo Overlay per renderlo Serif ed elegante sempre */
+        .overlay-title { 
+            font-size: clamp(4rem, 10vw, 9rem); 
+            line-height: 0.9; 
+            grid-column: 1 / -1; 
+            margin-bottom: 2rem; 
+            font-family: var(--f-serif);
+            font-weight: 400;
+            text-transform: none;
+            letter-spacing: -0.01em;
+        }
+        
+        .overlay-specs { font-size: 0.9rem; text-transform: uppercase; letter-spacing: 0.1em; line-height: 2.5; font-weight: 600; border-top: 1px solid var(--c-border); padding-top: 2rem; }
+        #project-overlay.dark-theme .overlay-specs { border-color: rgba(255,255,255,0.1); }
+        .overlay-text { font-size: clamp(1.4rem, 2.5vw, 2.2rem); line-height: 1.6; font-family: var(--f-serif); border-top: 1px solid var(--c-border); padding-top: 2rem; }
+        #project-overlay.dark-theme .overlay-text { border-color: rgba(255,255,255,0.1); }
+
+        /* Galleria MUSEUM */
+        .museum-gallery { display: flex; flex-direction: column; gap: 12rem; padding: 4rem 0 10rem 0; position: relative; }
+        .art-wrapper { display: flex; align-items: center; gap: 5rem; width: 85%; }
+        .art-wrapper:nth-child(even) { align-self: flex-end; flex-direction: row-reverse; }
+        .framed-art { background-color: var(--c-passepartout); box-shadow: 0 0 0 1.2rem var(--c-frame), 0 40px 80px -20px rgba(0,0,0,0.3); padding: 3rem; width: 60%; flex-shrink: 0; }
+        .framed-art img { display: block; width: 100%; filter: contrast(0.95); mix-blend-mode: multiply; }
+        .art-caption { font-family: var(--f-serif); font-size: 1.8rem; line-height: 1.4; color: var(--c-accent); font-style: italic; max-width: 350px; }
+
+        /* Galleria BRUTALIST */
+        .brutalist-gallery { display: grid; grid-template-columns: repeat(12, 1fr); gap: 2rem; padding: 4rem 0 10rem 0; }
+        .brut-item { overflow: hidden; position: relative; }
+        .brut-item img { width: 100%; height: 130%; object-fit: cover; display: block; transform: scale(1.1); }
+        .b-img-1 { grid-column: 1 / 10; aspect-ratio: 16/9; }
+        .b-img-2 { grid-column: 8 / 13; aspect-ratio: 3/4; margin-top: -15%; z-index: 2; }
+        .b-img-3 { grid-column: 2 / 12; aspect-ratio: 21/9; margin-top: 5rem; }
+        .b-text-wrap { grid-column: 1 / -1; overflow: hidden; margin: 8rem 0; }
+        .b-text { font-size: clamp(4rem, 10vw, 12rem); text-transform: uppercase; font-family: var(--f-display); font-weight: 800; color: #222; line-height: 0.85; white-space: nowrap; }
+
+        /* ==========================================
+           7. COMPETENZE
+        ========================================== */
+        .services-wrapper { display: flex; gap: 6rem; max-width: var(--container-w); margin: 0 auto; padding: 4rem 2.5rem var(--spacing-xxl) 2.5rem; position: relative; align-items: flex-start; }
+        .services-sticky { width: 35%; position: sticky; top: 150px; }
+        .services-list { width: 65%; display: flex; flex-direction: column; gap: 12rem; }
+        .service-card { display: flex; flex-direction: column; gap: 2rem; perspective: 1500px; }
+        .srv-header { display: flex; align-items: baseline; gap: 2rem; border-bottom: 1px solid var(--c-border); padding-bottom: 1.5rem; }
+        .srv-num { font-family: var(--f-serif); font-size: 2.5rem; color: var(--c-accent); font-style: italic; }
+        .srv-title { font-size: clamp(2.5rem, 4vw, 4rem); letter-spacing: -0.02em; }
+        .srv-desc { font-size: 1.2rem; max-width: 500px; color: rgba(42,35,32,0.8); }
+        .srv-img-wrap { width: 100%; aspect-ratio: 16/10; overflow: hidden; border-radius: 20px; clip-path: inset(20% 20% 20% 20% round 30px); transform-style: preserve-3d; will-change: clip-path, transform; }
+        .srv-img-wrap img { width: 100%; height: 100%; object-fit: cover; transform: scale(1.4) rotateX(10deg); transform-origin: center center; will-change: transform; }
+
+        /* ==========================================
+           8. FOOTER E MARQUEE ANIMATA
+        ========================================== */
+        .footer { 
+            background-color: var(--c-frame); color: var(--c-bg); 
+            /* Rimosso il padding superiore, ora è gestito dal marquee */
+            padding: 0 0 3rem 0; 
+            border-top-left-radius: 30px; border-top-right-radius: 30px;
+            position: relative; overflow: hidden;
+        }
+
+        /* Marquee Text - Ora posizionato in cima SOPRA al resto del contenuto */
+        .footer-marquee {
+            position: relative;
+            width: 100%;
+            color: rgba(255, 255, 255, 0.04);
+            font-size: 7.5vw;
+            font-family: var(--f-display);
+            font-weight: 600;
+            letter-spacing: 0.02em;
+            white-space: nowrap;
+            pointer-events: none;
+            user-select: none;
+            line-height: 1;
+            padding: 4rem 0 3rem 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            margin-bottom: 5rem;
+        }
+
+        .marquee-track {
+            display: inline-block;
+            animation: marqueeScroll 80s linear infinite; 
+        }
+
+        @keyframes marqueeScroll {
+            0% { transform: translateX(0); }
+            100% { transform: translateX(-50%); }
+        }
+        
+        .footer-grid { 
+            display: grid; grid-template-columns: 2fr 1fr 1fr; gap: 4rem; 
+            max-width: var(--container-w); margin: 0 auto; 
+            border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 5rem; 
+            padding-left: 2.5rem; padding-right: 2.5rem;
+            position: relative; z-index: 1;
+        }
+        
+        .footer-cta { font-size: clamp(3.5rem, 8vw, 8rem); line-height: 0.9; margin-bottom: 3rem; }
+        .footer-col h4 { font-size: 0.9rem; text-transform: uppercase; color: rgba(255,255,255,0.4); margin-bottom: 2rem; letter-spacing: 0.1em; }
+        .footer-col ul { list-style: none; display: flex; flex-direction: column; gap: 1.2rem; }
+        .footer-col a { color: var(--c-bg); text-decoration: none; font-size: 1.2rem; transition: color 0.3s; }
+        .footer-col a:hover { color: var(--c-accent); }
+        
+        .footer-bottom {
+            max-width: var(--container-w); margin: 3rem auto 0 auto; display: flex; 
+            justify-content: space-between; font-size: 0.9rem; color: rgba(255,255,255,0.5); 
+            text-transform: uppercase; letter-spacing: 0.05em; 
+            padding-left: 2.5rem; padding-right: 2.5rem;
+            position: relative; z-index: 1;
+        }
+
+        /* MEDIA QUERIES */
+        @media (max-width: 1024px) {
+            .hero-title .indent { padding-left: 0; }
+            .hero-images { height: 40vh; }
+            .sub-img { right: 0; }
+            .process-section { grid-template-columns: 1fr; gap: 3rem; }
+            .layout-a, .layout-b { grid-template-columns: 1fr !important; direction: ltr; padding: 4rem 2.5rem; gap: 3rem; }
+            .art-wrapper, .art-wrapper:nth-child(even) { flex-direction: column; align-items: flex-start; width: 100%; gap: 2rem; }
+            .framed-art { width: 100%; }
+            .b-img-1, .b-img-2, .b-img-3 { grid-column: 1 / -1; margin: 0; aspect-ratio: auto; }
+            .services-wrapper { flex-direction: column; gap: 3rem; }
+            .services-sticky { width: 100%; position: relative; top: 0; }
+            .services-list { width: 100%; }
+            .footer-grid { grid-template-columns: 1fr; }
+            .footer-marquee { font-size: 14vw; padding-top: 3rem; margin-bottom: 3rem; } 
+        }
+    </style>
+</head>
+<body>
+
+    <header id="main-header">
+        <div class="logo" onclick="lenis.scrollTo(0)">AURA</div>
+        <button class="menu-btn" id="menu-toggle">Menu</button>
+    </header>
+
+    <nav id="compact-menu" data-lenis-prevent>
+        <ul class="menu-links">
+            <li><a href="#lo-studio" class="scroll-link">Lo Studio</a></li>
+            <li><a href="#progetti" class="scroll-link">Progetti</a></li>
+            <li><a href="#competenze" class="scroll-link">Competenze</a></li>
+            <li><a href="#contatti" class="scroll-link">Contatti</a></li>
+        </ul>
+    </nav>
+
+    <div id="project-overlay" data-lenis-prevent>
+        <div class="overlay-header">
+            <div class="logo">AURA</div>
+            <button class="close-btn" id="close-overlay">Chiudi</button>
+        </div>
+        <div class="overlay-content">
+            <h2 class="overlay-title" id="ov-title">Titolo</h2>
+            <div class="overlay-hero">
+                <div class="overlay-specs">
+                    <div style="margin-bottom: 1.5rem;">Tipologia<br><span id="ov-type" style="color:var(--c-accent); font-size: 1.2rem;"></span></div>
+                    <div style="margin-bottom: 1.5rem;">Anno<br><span id="ov-year" style="color:var(--c-accent); font-size: 1.2rem;"></span></div>
+                    <div>Luogo<br><span id="ov-location" style="color:var(--c-accent); font-size: 1.2rem;"></span></div>
+                </div>
+                <div class="overlay-text" id="ov-desc"></div>
+            </div>
+            <div id="ov-gallery-container"></div>
+        </div>
+    </div>
+
+    <main id="smooth-wrapper">
+        <div id="smooth-content">
+            
+            <section class="hero" id="home">
+                <div class="hero-top-text">Milano — Architettura Avanzata</div>
+                <h1 class="hero-title">
+                    <span class="reveal-wrap"><span class="reveal-inner">L'estetica</span></span><br>
+                    <span class="reveal-wrap indent"><span class="reveal-inner">del <span class="serif-italic">vuoto.</span></span></span>
+                </h1>
+                <div class="hero-images">
+                    <div class="hero-img-wrap main-img">
+                        <img src="https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?q=80&w=1600&auto=format" class="parallax-hero" alt="Architettura Esterna">
+                    </div>
+                    <div class="hero-img-wrap sub-img">
+                        <img src="https://images.unsplash.com/photo-1600585154340-be6161a56a0c?q=80&w=800&auto=format" class="parallax-hero" alt="Dettaglio Interni">
+                    </div>
+                </div>
+            </section>
+
+            <section class="process-section" id="lo-studio">
+                <div class="process-bg-shape" id="process-shape"></div>
+                <div>
+                    <div class="section-label" style="border:none; margin:0;">01 / Il Metodo</div>
+                </div>
+                <div class="process-text" id="process-text">
+                    Il nostro lavoro inizia dall'ascolto del luogo. Prima di tracciare una singola linea, studiamo come la luce del sole attraversa l'ambiente. Non riempiamo spazi, li liberiamo dal superfluo per far emergere l'essenza architettonica. È un processo lento, tattile, progettato per creare architetture che calmano la mente.
+                </div>
+            </section>
+
+            <section class="projects" id="progetti">
+                <div class="projects-header"><div class="section-label">Opere Selezionate</div></div>
+                
+                <div class="project-card layout-a" 
+                     data-theme="light"
+                     data-title="Dimora Argilla" data-type="Residenza" data-year="2024" data-loc="Val d'Orcia"
+                     data-desc="Un omaggio alla terra. Intonaci naturali e cotto fatto a mano creano un rifugio che respira insieme alle colline, annullando il confine tra interno ed esterno."
+                     data-captions="Studio della luce naturale sulle texture murarie|Dettaglio dei materiali: intonaco crudo e legno massello|Prospettiva sul paesaggio attraverso le aperture minimali"
+                     data-gallery="https://images.unsplash.com/photo-1600607686527-6fb886090705?q=70&w=1200,https://images.unsplash.com/photo-1600566752355-35792bedcfea?q=70&w=1000,https://images.unsplash.com/photo-1600210491369-e753d80a41f3?q=70&w=1200">
+                    <div class="project-img-container"><img src="https://images.unsplash.com/photo-1600607686527-6fb886090705?q=80&w=1000&auto=format" alt="Argilla Preview"></div>
+                    <div class="project-info">
+                        <div class="project-meta">01 — Architettura Rurale</div>
+                        <h3 class="project-title">Dimora Argilla</h3>
+                        <button class="btn-outline">Esplora l'Opera</button>
+                    </div>
+                </div>
+
+                <div class="project-card layout-b"
+                     data-theme="dark"
+                     data-title="Attico <i>Cenere</i>" data-type="Interior" data-year="2023" data-loc="Milano"
+                     data-desc="Un santuario di silenzio nel caos cittadino. Linee taglienti, cemento spatolato e ombre profonde definiscono i nuovi volumi architettonici, sfidando la gravità."
+                     data-gallery="https://images.unsplash.com/photo-1512917774080-9991f1c4c750?q=80&w=1600,https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?q=80&w=1200,https://images.unsplash.com/photo-1503387762-592deb58ef4e?q=80&w=1600">
+                    <div class="project-info">
+                        <div class="project-meta">02 — Interior Brutalista</div>
+                        <h3 class="project-title">Attico<br><i>Cenere</i></h3>
+                        <button class="btn-outline">Scopri l'abisso</button>
+                    </div>
+                    <div class="collage-wrap">
+                        <div class="col-img-1"><img src="https://images.unsplash.com/photo-1512917774080-9991f1c4c750?q=80&w=1000&auto=format" alt="Cenere 1"></div>
+                        <div class="col-img-2"><img src="https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?q=80&w=800&auto=format" alt="Cenere 2"></div>
+                    </div>
+                </div>
+            </section>
+
+            <section class="services-wrapper" id="competenze">
+                <div class="services-sticky">
+                    <div class="section-label">Le nostre competenze</div>
+                </div>
+                <div class="services-list">
+                    <div class="service-card">
+                        <div class="srv-header">
+                            <span class="srv-num">01.</span>
+                            <h3 class="srv-title">Architettura</h3>
+                        </div>
+                        <p class="srv-desc">Non disegniamo semplici case, scolpiamo volumi che interagiscono con il paesaggio e la luce solare, rispettando il contesto preesistente.</p>
+                        <div class="srv-img-wrap"><img src="https://images.unsplash.com/photo-1497366216548-37526070297c?q=80&w=1200&auto=format" alt="Studio Architettura"></div>
+                    </div>
+                    <div class="service-card" style="margin-top: 5rem;">
+                        <div class="srv-header">
+                            <span class="srv-num">02.</span>
+                            <h3 class="srv-title">Interior Design</h3>
+                        </div>
+                        <p class="srv-desc">Un meticoloso lavoro di sottrazione per far emergere texture pure, materiali naturali e geometrie essenziali.</p>
+                        <div class="srv-img-wrap"><img src="https://images.unsplash.com/photo-1618221195710-dd6b41faaea6?q=80&w=1200&auto=format" alt="Architettura Interni"></div>
+                    </div>
+                </div>
+            </section>
+
+            <footer class="footer" id="contatti">
+                <div class="footer-marquee">
+                    <div class="marquee-track">
+                        <span>INIZIAMO UN DIALOGO — INIZIAMO UN DIALOGO — INIZIAMO UN DIALOGO — INIZIAMO UN DIALOGO — </span>
+                        <span>INIZIAMO UN DIALOGO — INIZIAMO UN DIALOGO — INIZIAMO UN DIALOGO — INIZIAMO UN DIALOGO — </span>
+                    </div>
+                </div>
+                
+                <div class="footer-grid">
+                    <div class="footer-brand">
+                        <h2 class="footer-cta"><span class="serif-italic">Iniziamo</span> un<br>dialogo.</h2>
+                        <a href="mailto:studio@aura.it" class="btn-outline" style="border-color:var(--c-bg); margin-top:0;">studio@aura.it</a>
+                    </div>
+                    <div class="footer-col">
+                        <h4>Sede Operativa</h4>
+                        <ul>
+                            <li>Via Solferino 24</li>
+                            <li>Brera Design District</li>
+                            <li>20121 Milano, Italia</li>
+                        </ul>
+                    </div>
+                    <div class="footer-col">
+                        <h4>Connessioni</h4>
+                        <ul>
+                            <li><a href="#">Instagram</a></li>
+                            <li><a href="#">Pinterest</a></li>
+                            <li><a href="#">LinkedIn</a></li>
+                        </ul>
+                    </div>
+                </div>
+                <div class="footer-bottom">
+                    <div>© 2026 Aura Architecture. All rights reserved.</div>
+                    <div>Design with precision.</div>
+                </div>
+            </footer>
+        </div>
+    </main>
+
+    <script>
+        gsap.registerPlugin(ScrollTrigger);
+        
+        const lenis = new Lenis({ 
+            duration: 1.5, 
+            easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
+            direction: 'vertical',
+            smooth: true
+        });
+        lenis.on('scroll', ScrollTrigger.update);
+        gsap.ticker.add((time) => { lenis.raf(time * 1000); });
+        gsap.ticker.lagSmoothing(0, 0);
+
+        let overlayTriggers = [];
+
+        window.addEventListener('DOMContentLoaded', () => {
+            const tlInit = gsap.timeline();
+            
+            tlInit.fromTo('.hero-img-wrap', 
+                { opacity: 0, scale: 0.95 },
+                { opacity: 1, scale: 1, duration: 1.5, stagger: 0.2, ease: "power3.out" }
+            )
+            .to('.hero-title .reveal-inner', { 
+                y: '0%', duration: 1.2, stagger: 0.15, ease: "power4.out" 
+            }, "-=1.2");
+
+            gsap.to('.parallax-hero', { 
+                yPercent: 20, ease: 'none', 
+                scrollTrigger: { trigger: '.hero', start: 'top top', end: 'bottom top', scrub: true }
+            });
+
+            const processTextEl = document.getElementById('process-text');
+            const words = processTextEl.innerText.split(' ');
+            processTextEl.innerHTML = '';
+            words.forEach(word => {
+                const span = document.createElement('span'); 
+                span.className = 'word'; 
+                span.innerHTML = word + '&nbsp;';
+                processTextEl.appendChild(span);
+            });
+            
+            // Animazione testo corretta: triggerata dal testo stesso
+            gsap.to('.process-section .word', {
+                color: 'var(--c-text)', 
+                stagger: 0.05,
+                scrollTrigger: { 
+                    trigger: '#process-text', 
+                    start: 'top 85%', // Inizia solo quando il testo sta entrando
+                    end: 'bottom 50%', // Finisce quando il testo è a metà schermo
+                    scrub: true 
+                }
+            });
+            
+            gsap.utils.toArray('.service-card').forEach(card => {
+                const imgWrap = card.querySelector('.srv-img-wrap');
+                const img = card.querySelector('.srv-img-wrap img');
+                
+                const tl = gsap.timeline({
+                    scrollTrigger: {
+                        trigger: card,
+                        start: 'top 85%',
+                        end: 'bottom 40%',
+                        scrub: 1
+                    }
+                });
+
+                tl.to(imgWrap, { clipPath: 'inset(0% 0% 0% 0% round 4px)', ease: 'none' }, 0)
+                  .to(img, { scale: 1, rotateX: 0, ease: 'none' }, 0);
+            });
+        });
+
+        const menuToggle = document.getElementById('menu-toggle');
+        const menu = document.getElementById('compact-menu');
+        let menuOpen = false;
+        
+        menuToggle.addEventListener('click', () => {
+            menuOpen = !menuOpen;
+            if(menuOpen) { 
+                menu.classList.add('active'); 
+                menuToggle.innerText = 'Chiudi'; 
+            } else { 
+                menu.classList.remove('active'); 
+                menuToggle.innerText = 'Menu'; 
+            }
+        });
+
+        document.querySelectorAll('.scroll-link').forEach(link => {
+            link.addEventListener('click', (e) => {
+                e.preventDefault();
+                menu.classList.remove('active'); 
+                menuToggle.innerText = 'Menu'; 
+                menuOpen = false;
+                lenis.scrollTo(link.getAttribute('href'), { offset: -100, duration: 1.5 });
+            });
+        });
+
+        const overlay = document.getElementById('project-overlay');
+        const galleryContainer = document.getElementById('ov-gallery-container');
+
+        document.querySelectorAll('.project-card').forEach(card => {
+            card.addEventListener('click', (e) => {
+                if(e.target.tagName.toLowerCase() === 'button' && e.target.id === 'menu-toggle') return;
+                
+                // Entrambi i titoli ora manterranno la classe CSS .overlay-title (Serif Elegante)
+                document.getElementById('ov-title').innerHTML = card.dataset.title;
+                
+                document.getElementById('ov-type').innerText = card.dataset.type;
+                document.getElementById('ov-year').innerText = card.dataset.year;
+                document.getElementById('ov-location').innerText = card.dataset.loc;
+                document.getElementById('ov-desc').innerText = card.dataset.desc;
+                
+                const theme = card.dataset.theme; 
+                const imagesUrls = card.dataset.gallery.split(',');
+                galleryContainer.innerHTML = ''; 
+                
+                overlayTriggers.forEach(t => t.kill());
+                overlayTriggers = [];
+
+                if (theme === 'light') {
+                    overlay.classList.remove('dark-theme');
+                    const captions = card.dataset.captions.split('|');
+                    
+                    const gallery = document.createElement('div'); 
+                    gallery.className = 'museum-gallery';
+                    
+                    gallery.innerHTML = `
+                        <div class="art-wrapper move-y-1">
+                            <div class="framed-art f-art-1"><img src="${imagesUrls[0]}&auto=format" loading="lazy"></div>
+                            <div class="art-caption">${captions[0] || ''}</div>
+                        </div>
+                        <div class="art-wrapper move-x-2">
+                            <div class="framed-art f-art-2"><img src="${imagesUrls[1]}&auto=format" loading="lazy"></div>
+                            <div class="art-caption">${captions[1] || ''}</div>
+                        </div>
+                        <div class="art-wrapper move-y-3">
+                            <div class="framed-art f-art-3"><img src="${imagesUrls[2]}&auto=format" loading="lazy"></div>
+                            <div class="art-caption">${captions[2] || ''}</div>
+                        </div>
+                    `;
+                    galleryContainer.appendChild(gallery);
+
+                    setTimeout(() => {
+                        overlayTriggers.push(ScrollTrigger.create({
+                            trigger: '.move-y-1', scroller: '#project-overlay',
+                            start: 'top 80%', end: 'bottom 20%', scrub: 1,
+                            animation: gsap.fromTo('.f-art-1', { y: -100 }, { y: 100, ease: 'none' })
+                        }));
+                        overlayTriggers.push(ScrollTrigger.create({
+                            trigger: '.move-x-2', scroller: '#project-overlay',
+                            start: 'top 80%', end: 'bottom 20%', scrub: 1,
+                            animation: gsap.fromTo('.f-art-2', { x: -100 }, { x: 100, ease: 'none' })
+                        }));
+                        overlayTriggers.push(ScrollTrigger.create({
+                            trigger: '.move-y-3', scroller: '#project-overlay',
+                            start: 'top 80%', end: 'bottom 20%', scrub: 1,
+                            animation: gsap.fromTo('.f-art-3', { y: -100 }, { y: 100, ease: 'none' })
+                        }));
+                    }, 500);
+
+                } else {
+                    overlay.classList.add('dark-theme');
+                    const gallery = document.createElement('div'); 
+                    gallery.className = 'brutalist-gallery';
+                    
+                    gallery.innerHTML = `
+                        <div class="brut-item b-img-1"><img class="prlx-img" data-speed="0.1" src="${imagesUrls[0]}&auto=format" loading="lazy"></div>
+                        <div class="brut-item b-img-2"><img class="prlx-img" data-speed="0.25" src="${imagesUrls[1]}&auto=format" loading="lazy"></div>
+                        <div class="b-text-wrap"><div class="b-text anim-text-slide">Materia, Ombra e Silenzio.</div></div>
+                        <div class="brut-item b-img-3"><img class="prlx-img" data-speed="0.15" src="${imagesUrls[2]}&auto=format" loading="lazy"></div>
+                    `;
+                    galleryContainer.appendChild(gallery);
+
+                    setTimeout(() => {
+                        document.querySelectorAll('.prlx-img').forEach(img => {
+                            const speed = img.getAttribute('data-speed');
+                            overlayTriggers.push(ScrollTrigger.create({
+                                trigger: img.parentElement, scroller: '#project-overlay',
+                                start: 'top bottom', end: 'bottom top', scrub: true,
+                                animation: gsap.to(img, { yPercent: speed * 100, ease: 'none' })
+                            }));
+                        });
+
+                        overlayTriggers.push(ScrollTrigger.create({
+                            trigger: '.b-text-wrap', scroller: '#project-overlay',
+                            start: 'top bottom', end: 'bottom top', scrub: 1,
+                            animation: gsap.fromTo('.anim-text-slide', { x: '10%' }, { x: '-30%', ease: 'none' })
+                        }));
+                    }, 500);
+                }
+
+                lenis.stop(); 
+                overlay.classList.add('active'); 
+                overlay.scrollTo(0, 0);
+                gsap.fromTo(overlay, { y: '100%' }, { y: '0%', duration: 1.2, ease: "power4.inOut" });
+            });
+        });
+
+        document.getElementById('close-overlay').addEventListener('click', () => {
+            gsap.to(overlay, { 
+                y: '100%', duration: 1, ease: "power4.inOut", 
+                onComplete: () => { 
+                    overlay.classList.remove('active'); 
+                    lenis.start(); 
+                    overlayTriggers.forEach(t => t.kill());
+                    overlayTriggers = [];
+                } 
+            });
+        });
+    </script>
+</body>
+</html>
