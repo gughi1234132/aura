@@ -298,10 +298,11 @@
         /* ==========================================
            6. OVERLAY PROGETTI (GALLERIE ANIMATE)
         ========================================== */
+        /* BUG FIX: rimossa la transizione sul background-color per evitare l'effetto flash */
         #project-overlay { 
             position: fixed; inset: 0; width: 100%; height: 100%; 
             background-color: var(--c-bg); z-index: 9999; overflow-y: auto; overflow-x: hidden; 
-            transform: translateY(100%); pointer-events: none; transition: background-color 0.5s; 
+            transform: translateY(100%); pointer-events: none; 
         }
         
         #project-overlay.active { pointer-events: auto; }
@@ -326,7 +327,6 @@
         .overlay-content { padding: 0 2.5rem var(--spacing-xl) 2.5rem; max-width: var(--container-w); margin: 0 auto; width: 100%; }
         .overlay-hero { margin-top: 4rem; display: grid; grid-template-columns: 1fr 2fr; gap: 5rem; margin-bottom: var(--spacing-xl); }
         
-        /* Modifica font Titolo Overlay per renderlo Serif ed elegante sempre */
         .overlay-title { 
             font-size: clamp(4rem, 10vw, 9rem); 
             line-height: 0.9; 
@@ -380,13 +380,11 @@
         ========================================== */
         .footer { 
             background-color: var(--c-frame); color: var(--c-bg); 
-            /* Rimosso il padding superiore, ora è gestito dal marquee */
             padding: 0 0 3rem 0; 
             border-top-left-radius: 30px; border-top-right-radius: 30px;
             position: relative; overflow: hidden;
         }
 
-        /* Marquee Text - Ora posizionato in cima SOPRA al resto del contenuto */
         .footer-marquee {
             position: relative;
             width: 100%;
@@ -436,6 +434,58 @@
             position: relative; z-index: 1;
         }
 
+        /* ==========================================
+           9. WIDGET SITO VETRINA
+        ========================================== */
+        #demo-notice {
+            position: fixed;
+            bottom: 2rem;
+            left: 2rem;
+            background-color: #1a1a1a;
+            padding: 1.5rem;
+            border-radius: 6px;
+            width: 320px;
+            z-index: 99999;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.4);
+            font-family: var(--f-body);
+            border: 1px solid rgba(255,255,255,0.05);
+        }
+        
+        .demo-title { 
+            color: var(--c-accent); 
+            font-size: 1.1rem; 
+            margin-bottom: 0.8rem; 
+            font-weight: 500; 
+            font-family: var(--f-body); 
+            letter-spacing: 0; 
+        }
+        
+        .demo-desc { 
+            color: rgba(255,255,255,0.8); 
+            font-size: 0.85rem; 
+            line-height: 1.5; 
+            margin-bottom: 1.5rem; 
+        }
+        
+        .demo-btn { 
+            display: block; 
+            text-align: center; 
+            background-color: var(--c-accent); 
+            color: #fff; 
+            text-decoration: none; 
+            padding: 0.8rem; 
+            border-radius: 4px; 
+            font-size: 0.75rem; 
+            font-weight: 700; 
+            text-transform: uppercase; 
+            letter-spacing: 0.05em; 
+            transition: filter 0.3s; 
+        }
+        
+        .demo-btn:hover { 
+            filter: brightness(1.1); 
+        }
+
         /* MEDIA QUERIES */
         @media (max-width: 1024px) {
             .hero-title .indent { padding-left: 0; }
@@ -451,6 +501,14 @@
             .services-list { width: 100%; }
             .footer-grid { grid-template-columns: 1fr; }
             .footer-marquee { font-size: 14vw; padding-top: 3rem; margin-bottom: 3rem; } 
+        }
+        
+        @media (max-width: 768px) {
+            #demo-notice { 
+                bottom: 1rem; 
+                left: 1rem; 
+                width: calc(100% - 2rem); 
+            }
         }
     </style>
 </head>
@@ -614,6 +672,13 @@
         </div>
     </main>
 
+    <!-- WIDGET SITO VETRINA -->
+    <div id="demo-notice">
+        <h4 class="demo-title">Sito Vetrina</h4>
+        <p class="demo-desc">Questo è un ambiente dimostrativo creato per mostrare il design e le funzionalità.</p>
+        <a href="https://sito.luca-dordoni1.workers.dev/" target="_self" class="demo-btn">Torna al sito principale</a>
+    </div>
+
     <script>
         gsap.registerPlugin(ScrollTrigger);
         
@@ -655,14 +720,13 @@
                 processTextEl.appendChild(span);
             });
             
-            // Animazione testo corretta: triggerata dal testo stesso
             gsap.to('.process-section .word', {
                 color: 'var(--c-text)', 
                 stagger: 0.05,
                 scrollTrigger: { 
                     trigger: '#process-text', 
-                    start: 'top 85%', // Inizia solo quando il testo sta entrando
-                    end: 'bottom 50%', // Finisce quando il testo è a metà schermo
+                    start: 'top 85%', 
+                    end: 'bottom 50%', 
                     scrub: true 
                 }
             });
@@ -717,9 +781,7 @@
             card.addEventListener('click', (e) => {
                 if(e.target.tagName.toLowerCase() === 'button' && e.target.id === 'menu-toggle') return;
                 
-                // Entrambi i titoli ora manterranno la classe CSS .overlay-title (Serif Elegante)
                 document.getElementById('ov-title').innerHTML = card.dataset.title;
-                
                 document.getElementById('ov-type').innerText = card.dataset.type;
                 document.getElementById('ov-year').innerText = card.dataset.year;
                 document.getElementById('ov-location').innerText = card.dataset.loc;
